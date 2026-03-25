@@ -1,0 +1,16 @@
+FROM golang:1.22-alpine AS builder
+
+WORKDIR /app
+
+COPY go.mod ./
+COPY . .
+RUN go mod tidy && CGO_ENABLED=0 go build -o /bin/notifier ./cmd/notifier
+
+# ---
+
+FROM alpine:3.19
+
+RUN apk add --no-cache ca-certificates
+COPY --from=builder /bin/notifier /bin/notifier
+
+CMD ["/bin/notifier"]
